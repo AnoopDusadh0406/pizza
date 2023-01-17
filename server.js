@@ -19,6 +19,9 @@ const session = require('express-session');
 // for cookies 
 const flash = require('express-flash');
 
+// for log in system
+const passport = require('passport');
+
 // for session storage store  in mongo(database) . It return  class type or constructer
 const MongDbStore =  require('connect-mongo')(session);
 
@@ -40,10 +43,6 @@ connection.once('open' , ()=>{
 
 
 
-
-
-
-
 //Session store
 let mongoStore = new MongDbStore({
               mongooseConnection: connection,
@@ -61,16 +60,32 @@ app.use(session({
       Cookie: {maxAge : 1000*60*60*24} // 24 hour
 }));
 
+
+
+
+
+
+// passport config
+const passportInit = require('./app/config/passport');
+passportInit(passport);
+app.use(passport.initialize());
+app.use(passport.session());
+
+
 // flash as a middleware
-  app.use(flash()); 
+app.use(flash()); 
+
 /// Asset
 
 app.use(express.static('public'));
+app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 
-// global middleware
+
+// global middleware bcz in layout we need to use session and user
 app.use((req,res,next)=>{
      res.locals.session = req.session;
+     res.locals.user = req.user;
      next();
 });
 
