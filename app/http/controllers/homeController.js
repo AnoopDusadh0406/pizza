@@ -2,20 +2,20 @@ const Menu = require('../../models/menu')
 
 function homeController() 
 {
-  // all logic in conroller 
+  // all logic in controller 
     return {
        //page read
-        index(req,res) 
+        async index(req,res) 
         {
-    //          const pizzas = await Menu.find()
-    //          console.log(pizzas);
-    //          return res.render('home' , {pizzas: pizzas});
-    Menu.find().then(function(pizzas)
-        {
-              console.log(pizzas)
+              const pizzas = await Menu.find()
+             // console.log(pizzas);
               return res.render('home' , {pizzas: pizzas});
-           });
-    }
-}
+            // Menu.find().then(function(pizzas){
+           
+            //     console.log(pizzas)
+            //      return res.render('home' , {pizzas: pizzas});
+            //  });
+       }
+   }
 }
 module.exports = homeController;

@@ -1,3 +1,6 @@
+// secret key 
+require('dotenv').config();
+
 const express = require('express');
 
 const app = express();
@@ -11,29 +14,65 @@ const expressLayout = require('express-ejs-layouts');
 const PORT = process.env.PORT || 3000 ;
 
 const mongoose = require('mongoose');
+// for session
+const session = require('express-session');
+// for cookies 
+const flash = require('express-flash');
+
+// for session storage store  in mongo(database) . It return  class type or constructer
+const MongDbStore =  require('connect-mongo')(session);
+
 
 ///// database connection
 
 const url = 'mongodb://localhost:27017/pizza';
-//mongoose.set('strictQuery', true);
+mongoose.set('strictQuery', false);
 
-mongoose.connect(url,{useNewUrlParser: true , useUnifiedTopology: true})
-.then(() => console.log("connection Successful"))
-.catch((err)=> console.log(err));
+ mongoose.connect(url,{useNewUrlParser: true , useUnifiedTopology: true});
+ const connection = mongoose.connection;
+ //     // event listener type
+connection.once('open' , ()=>{
+     console.log('Dtabase connected ....');
+}).on('error' ,function(err) {
+    console.log('connection failed.....')
+});
 
 
 
-// const connection = mongoose.connection;
-//     // event listener type
-// connection.once('open' , ()=>{
-//      console.log('Dtabase connected ....');
-// }).on('error' ,function(err) {
-//     console.log('connection failed.....')
-// });
 
+
+
+
+
+//Session store
+let mongoStore = new MongDbStore({
+              mongooseConnection: connection,
+              collection: 'sessions'}) ;
+
+
+// session config for add to cart storage
+
+app.use(session({
+    // secret for cookies bcz it's encryption format
+      secret : process.env.COOKIE_SECRET,
+      resave: false ,
+      store : mongoStore,
+      saveUninitialized: false,
+      Cookie: {maxAge : 1000*60*60*24} // 24 hour
+}));
+
+// flash as a middleware
+  app.use(flash()); 
 /// Asset
 
 app.use(express.static('public'));
+app.use(express.json());
+
+// global middleware
+app.use((req,res,next)=>{
+     res.locals.session = req.session;
+     next();
+});
 
 // set Template engine
 
